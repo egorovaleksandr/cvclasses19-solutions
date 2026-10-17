@@ -37,7 +37,15 @@ TEST_CASE("simple regions", "[split_and_merge]")
 
     SECTION("3x3")
     {
-        // \todo
+        const cv::Mat reference = (cv::Mat_<char>(3, 3) << 20, 20, 20, 20, 20, 20, 20, 20, 20);
+        cv::Mat image = (cv::Mat_<char>(3, 3) << 0, 5, 10, 15, 20, 25, 30, 35, 40);
+        auto res = split_and_merge(image, 100);
+        REQUIRE(image.size() == res.size());
+        REQUIRE(image.type() == res.type());
+        REQUIRE(0 == cv::countNonZero(reference - res));
+
+        res = split_and_merge(image, 1);
+        REQUIRE(0 == cv::countNonZero(image - res));
     }
 }
 
@@ -45,16 +53,46 @@ TEST_CASE("compex regions", "[split_and_merge]")
 {
     SECTION("2x2")
     {
-        // \todo
+        const cv::Mat reference = (cv::Mat_<char>(2, 2) << 1, 1, 11, 11);
+        cv::Mat image = (cv::Mat_<char>(2, 2) << 0, 2, 10, 12);
+        auto res = split_and_merge(image, 3);
+        REQUIRE(image.size() == res.size());
+        REQUIRE(image.type() == res.type());
+        REQUIRE(0 == cv::countNonZero(reference - res));
+
+        res = split_and_merge(image, 1);
+        REQUIRE(0 == cv::countNonZero(image - res));
     }
 
     SECTION("3x3")
     {
-        // \todo
+        const cv::Mat reference = (cv::Mat_<char>(3, 3) << 4, 4, 4, 4, 4, 4, 4, 4, 4);
+        cv::Mat image = (cv::Mat_<char>(3, 3) << 0, 1, 2, 3, 4, 5, 6, 7, 8);
+        auto res = split_and_merge(image, 10);
+        REQUIRE(image.size() == res.size());
+        REQUIRE(image.type() == res.type());
+        REQUIRE(0 == cv::countNonZero(reference - res));
+
+        res = split_and_merge(image, 0);
+        REQUIRE(0 == cv::countNonZero(image - res));
     }
 
     SECTION("4x4")
     {
-        // \todo
+        const cv::Mat reference = (cv::Mat_<char>(4, 4) << 1, 1, 1, 1,
+                                                            1, 1, 1, 1,
+                                                            11, 11, 11, 11,
+                                                            11, 11, 11, 11);
+        cv::Mat image = (cv::Mat_<char>(4, 4) << 0, 0, 2, 2,
+                                                 0, 0, 2, 2,
+                                                 10, 10, 12, 12,
+                                                 10, 10, 12, 12);
+        auto res = split_and_merge(image, 5);
+        REQUIRE(image.size() == res.size());
+        REQUIRE(image.type() == res.type());
+        REQUIRE(0 == cv::countNonZero(reference - res));
+
+        res = split_and_merge(image, 2);
+        REQUIRE(0 == cv::countNonZero(image - res));
     }
 }
