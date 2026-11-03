@@ -40,8 +40,24 @@ class motion_segmentation : public cv::BackgroundSubtractor
         backgroundImage.assign(bg_model_);
     }
 
+    /// \brief Set foreground detection threshold
+    void setVarThreshold(int threshold)
+    {
+        var_threshold_ = threshold;
+    }
+
+    /// \brief Get foreground detection threshold
+    int getVarThreshold() const
+    {
+        return var_threshold_;
+    }
+
     private:
     cv::Mat bg_model_;
+    cv::Mat min_;
+    cv::Mat max_;
+    int var_threshold_ = 20;
+    int warmup_frames_ = 0;
 };
 
 /// \brief FAST corner detection algorithm
