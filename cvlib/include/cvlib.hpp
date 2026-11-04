@@ -66,6 +66,19 @@ class corner_detector_fast : public cv::Feature2D
     {
         return "FAST_Binary";
     }
+
+    void setThreshold(int threshold)
+    {
+        threshold_ = threshold;
+    }
+
+    int getThreshold() const
+    {
+        return threshold_;
+    }
+
+    private:
+    int threshold_ = 20;
 };
 
 /// \brief Descriptor matched based on ratio of SSD

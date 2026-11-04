@@ -21,8 +21,14 @@ int demo_feature_matching(int argc, char* argv[])
     cv::namedWindow(main_wnd);
     cv::namedWindow(demo_wnd);
 
-    auto detector = cv::AKAZE::create(); // \todo use your detector from cvlib
-    auto matcher = cvlib::descriptor_matcher(1.2f); //\todo add trackbar to demo_wnd to tune ratio value
+    auto detector = cvlib::corner_detector_fast::create();
+    auto matcher = cvlib::descriptor_matcher(1.2f);
+
+    // Трекбары для настройки
+    int ratio_x10 = 12; // Соответствует 1.2f
+    int maxDistance = 50; // Порог SSD (Hamming distance для бинарных)
+    cv::createTrackbar("ratio x10", demo_wnd, &ratio_x10, 30);
+    cv::createTrackbar("maxDist", demo_wnd, &maxDistance, 256);
 
     /// \brief helper struct for tidy code
     struct img_features
@@ -35,6 +41,7 @@ int demo_feature_matching(int argc, char* argv[])
     img_features ref;
     img_features test;
     std::vector<std::vector<cv::DMatch>> pairs;
+    std::vector<std::vector<cv::DMatch>> filtered_pairs;
 
     cv::Mat main_frame;
     cv::Mat demo_frame;
@@ -43,6 +50,8 @@ int demo_feature_matching(int argc, char* argv[])
     while (pressed_key != 27) // ESC
     {
         cap >> test.img;
+        if (test.img.empty())
+            break;
 
         detector->detect(test.img, test.corners);
         cv::drawKeypoints(test.img, test.corners, main_frame);
@@ -61,9 +70,24 @@ int demo_feature_matching(int argc, char* argv[])
         }
 
         detector->compute(test.img, test.corners, test.descriptors);
-        //\todo add trackbar to demo_wnd to tune threshold value
-        matcher.radiusMatch(test.descriptors, ref.descriptors, pairs, 100.0f);
-        cv::drawMatches(test.img, test.corners, ref.img, ref.corners, pairs, demo_frame);
+        
+        // Настраиваем ratio из трекбара (значение 12 -> 1.2)
+        matcher.set_ratio(ratio_x10 / 10.0f);
+        
+        // Ищем 2 лучших совпадения для каждой точки (для ratio test)
+        matcher.knnMatch(test.descriptors, ref.descriptors, pairs, 2);
+
+        // Фильтруем по maxDistance
+        filtered_pairs.clear();
+        for (size_t i = 0; i < pairs.size(); ++i)
+        {
+            if (!pairs[i].empty() && pairs[i][0].distance <= maxDistance)
+            {
+                filtered_pairs.push_back(pairs[i]);
+            }
+        }
+
+        cv::drawMatches(test.img, test.corners, ref.img, ref.corners, filtered_pairs, demo_frame);
 
         utils::put_fps_text(demo_frame, fps);
         cv::imshow(demo_wnd, demo_frame);
